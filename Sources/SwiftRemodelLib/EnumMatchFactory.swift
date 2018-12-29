@@ -18,7 +18,7 @@ class EnumMatchFactory: SyntaxRewriter {
     }
     return swiftFileUrls.filter { return !$0.lastPathComponent.contains(RemodelConstants.enumMatchFileName) }
   }
-  
+  @discardableResult
   override func visit(_ node: EnumDeclSyntax) -> DeclSyntax {
     let enumData = EnumData(identifier: node.identifier, inheritance: node.inheritanceClause, cases:
       node.members.members.compactMap { (decl) -> EnumCaseElementListSyntax? in
@@ -172,17 +172,3 @@ class EnumMatchFactory: SyntaxRewriter {
     source.write(to: &fileWriter)
   }
 }
-
-/*
- func match(_ optionOne:(Int, Int)-> Void, optionTwo:(Error)->Void, optionThree:(Error)->Void) {
-  switch self {
-  case .optionOne(let data, let data2):
-    optionOne(data, data2)
-  case .optionTwo(let data):
-    optionTwo(data)
-  case .optionThree(let data):
-    optionThree(data)
-  }
- }
- */
-
