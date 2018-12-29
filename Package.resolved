@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Files",
+        "repositoryURL": "https://github.com/johnsundell/files.git",
+        "state": {
+          "branch": null,
+          "revision": "06f95bd1bf4f8d5f50bc6bb30b808c253acd4c88",
+          "version": "2.2.1"
+        }
+      },
+      {
+        "package": "SwiftSyntax",
+        "repositoryURL": "https://github.com/apple/swift-syntax.git",
+        "state": {
+          "branch": null,
+          "revision": "f20c0bcbfb4b07e107c9851350217cb2217f0cb4",
+          "version": "0.40200.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
