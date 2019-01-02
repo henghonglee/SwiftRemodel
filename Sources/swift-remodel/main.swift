@@ -11,7 +11,7 @@ import SwiftRemodelLib
 
 func main()
 {
-  let tool = CommandLineTool.init()
+  let tool = CommandLineTool.init(arguments: CommandLine.arguments)
   try! tool.run()
 }
 

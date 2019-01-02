@@ -4,6 +4,7 @@ import Files
 @testable import SwiftRemodelLib
 
 final class swift_remodelTests: XCTestCase {
+  
   func testCreatingFile() throws {
     // Some of the APIs that we use below are available in macOS 10.13 and above.
     guard #available(macOS 10.13, *) else {
@@ -28,7 +29,7 @@ final class swift_remodelTests: XCTestCase {
     fileManager.createFile(atPath: newfilePath.path, contents: nil, attributes: nil)
     try swift_remodelTests.testText.write(to: newfilePath, atomically: false, encoding: .utf8)
     
-    let arguments = [testFolder.path]
+    let arguments = ["",testFolder.path]
     let tool = CommandLineTool.init(arguments: arguments)
     try! tool.run()
     
@@ -46,53 +47,51 @@ final class swift_remodelTests: XCTestCase {
   ]
   
   static let testText = """
-  Struct someStruct {
-    let someProperty: Int
-    enum Action {
-      case fighter(F)
-      case weapon(W)
+  struct someOtherStruct {
+    enum anotherEnum {
+      case someCase(SomeClass)
+      case someOtherCase
+    }
+  }
 
-      enum F {
+  class SomeClass {
+    struct SomeStruct {
+      let someProperty: Int
+      enum Action {
+        case fighter(F)
+        case weapon(W)
+        
+        enum F {
           case attack(A)
           case defend(D)
           case hurt(H)
-
+          
           enum A {
-              case fail
-              case success
+            case fail
+            case success
           }
           enum D {
-              case fail
-              case success
+            case fail
+            case success
           }
           enum H {
-              case none
-              case some
+            case none
+            case some
           }
-      }
-      enum W {
+        }
+        enum W {
           case swing
           case back
+        }
+        case anotherWeapon(W)
       }
-      case anotherWeapon(W)
     }
   }
-
   """
   static let resultText = """
   import Foundation
-  
-  extension A {
-    func match(fail:()->Void, success:()->Void) {
-      switch self {
-      case .fail:
-        fail()
-      case .success:
-        success()
-      }
-    }
-  }
-  extension Action {
+
+  extension SomeClass.SomeStruct.Action {
     func match(fighter:(F)->Void, weapon:(W)->Void, anotherWeapon:(W)->Void) {
       switch self {
       case .fighter(let param0):
@@ -104,17 +103,7 @@ final class swift_remodelTests: XCTestCase {
       }
     }
   }
-  extension D {
-    func match(fail:()->Void, success:()->Void) {
-      switch self {
-      case .fail:
-        fail()
-      case .success:
-        success()
-      }
-    }
-  }
-  extension F {
+  extension SomeClass.SomeStruct.Action.F {
     func match(attack:(A)->Void, defend:(D)->Void, hurt:(H)->Void) {
       switch self {
       case .attack(let param0):
@@ -126,7 +115,27 @@ final class swift_remodelTests: XCTestCase {
       }
     }
   }
-  extension H {
+  extension SomeClass.SomeStruct.Action.F.A {
+    func match(fail:()->Void, success:()->Void) {
+      switch self {
+      case .fail:
+        fail()
+      case .success:
+        success()
+      }
+    }
+  }
+  extension SomeClass.SomeStruct.Action.F.D {
+    func match(fail:()->Void, success:()->Void) {
+      switch self {
+      case .fail:
+        fail()
+      case .success:
+        success()
+      }
+    }
+  }
+  extension SomeClass.SomeStruct.Action.F.H {
     func match(none:()->Void, some:()->Void) {
       switch self {
       case .none:
@@ -136,7 +145,7 @@ final class swift_remodelTests: XCTestCase {
       }
     }
   }
-  extension W {
+  extension SomeClass.SomeStruct.Action.W {
     func match(swing:()->Void, back:()->Void) {
       switch self {
       case .swing:
@@ -146,6 +155,16 @@ final class swift_remodelTests: XCTestCase {
       }
     }
   }
-  
+  extension someOtherStruct.anotherEnum {
+    func match(someCase:(SomeClass)->Void, someOtherCase:()->Void) {
+      switch self {
+      case .someCase(let param0):
+        someCase(param0)
+      case .someOtherCase:
+        someOtherCase()
+      }
+    }
+  }
+
   """
 }

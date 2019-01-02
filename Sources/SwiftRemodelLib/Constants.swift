@@ -11,7 +11,7 @@ import SwiftSyntax
 // each enum is basically a list of cases with each case potentially
 // having multiple values with different types represented in strings
 struct EnumData {
-  let identifier: TokenSyntax
+  let identifier: String
   let inheritance: TypeInheritanceClauseSyntax?
   let cases:[EnumCaseElementListSyntax]
 }

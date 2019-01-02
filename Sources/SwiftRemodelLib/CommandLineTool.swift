@@ -16,11 +16,11 @@ public final class CommandLineTool {
   }
   
   public func run() throws {
-    guard arguments.count > 0 else {
+    guard arguments.count > 1 else {
       throw Error.missingRootDirectory
     }
     // root directory to generate the new file, also searches all swift files starting from here
-    let rootDirectoryUrl = URL(fileURLWithPath: arguments[0])
+    let rootDirectoryUrl = URL(fileURLWithPath: arguments[1])
     
     let contents = try! FileManager.default.contentsOfDirectory(at: rootDirectoryUrl,
                                                                 includingPropertiesForKeys: nil,
@@ -32,9 +32,11 @@ public final class CommandLineTool {
     swiftFileUrls = factory.setUp(swiftFileUrls)
     
     for (index, swiftFile) in swiftFileUrls.enumerated() {
+            fflush(__stdoutp)
       print("\(index)/\(swiftFileUrls.count) files")
+
       let sourceFile = try! SyntaxTreeParser.parse(swiftFile)
-      factory.visit(sourceFile)
+      let _ = factory.visit(sourceFile)
     }
     factory.createEnumMatchFile(rootDirectoryUrl)
   }

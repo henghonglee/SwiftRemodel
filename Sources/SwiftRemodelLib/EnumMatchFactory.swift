@@ -11,6 +11,7 @@ import Foundation
 
 class EnumMatchFactory: SyntaxRewriter {
   var enumDatas = [String:EnumData]()
+  
   func setUp(_ swiftFileUrls: [URL]) -> [URL] {
     let enumMatchPaths = swiftFileUrls.filter { return $0.lastPathComponent.contains(RemodelConstants.enumMatchFileName) }
     for enumMatchPath in enumMatchPaths {
@@ -18,9 +19,28 @@ class EnumMatchFactory: SyntaxRewriter {
     }
     return swiftFileUrls.filter { return !$0.lastPathComponent.contains(RemodelConstants.enumMatchFileName) }
   }
-  @discardableResult
+  
   override func visit(_ node: EnumDeclSyntax) -> DeclSyntax {
-    let enumData = EnumData(identifier: node.identifier, inheritance: node.inheritanceClause, cases:
+    var inheritanceQueue = [String]()
+    inheritanceQueue.insert(node.identifier.text, at: 0)
+    var n:Syntax = node
+    while let parent = n.parent {
+      if parent is StructDeclSyntax {
+        let structDecl = parent as! StructDeclSyntax
+        inheritanceQueue.insert(structDecl.identifier.text, at: 0)
+      }
+      if parent is ClassDeclSyntax {
+        let classDecl = parent as! ClassDeclSyntax
+        inheritanceQueue.insert(classDecl.identifier.text, at: 0)
+      }
+      if parent is EnumDeclSyntax {
+        let enumDecl = parent as! EnumDeclSyntax
+        inheritanceQueue.insert(enumDecl.identifier.text, at: 0)
+      }
+      n = parent
+    }
+    let identifierWithInheritance = inheritanceQueue.joined(separator: ".")
+    let enumData = EnumData(identifier: identifierWithInheritance, inheritance: node.inheritanceClause, cases:
       node.members.members.compactMap { (decl) -> EnumCaseElementListSyntax? in
         if decl is EnumCaseDeclSyntax {
           let caseDecl = decl as! EnumCaseDeclSyntax
@@ -28,17 +48,17 @@ class EnumMatchFactory: SyntaxRewriter {
         }
         return nil
     })
-    enumDatas[enumData.identifier.text] = enumData
+    enumDatas[enumData.identifier] = enumData
     return super.visit(node)
   }
   
   func createEnumMatchFile(_ rootDirectoryUrl: URL) {
     var decls = [CodeBlockItemSyntax]()
     for enumData in enumDatas.values.sorted(by: { (data1, data2) -> Bool in
-      return data1.identifier.text < data2.identifier.text
+      return data1.identifier < data2.identifier
     }) {
       let extensionKeyword = SyntaxFactory.makeExtensionKeyword(leadingTrivia: .zero, trailingTrivia: .spaces(1))
-      let identifier = SyntaxFactory.makeTypeIdentifier(enumData.identifier.text, leadingTrivia: .zero, trailingTrivia: .spaces(1))
+      let identifier = SyntaxFactory.makeTypeIdentifier(enumData.identifier, leadingTrivia: .zero, trailingTrivia: .spaces(1))
       
       let leftBrace = SyntaxFactory.makeLeftBraceToken(leadingTrivia: .zero, trailingTrivia: .newlines(1))
       let rightBrace = SyntaxFactory.makeRightBraceToken(leadingTrivia: .newlines(1), trailingTrivia: .newlines(1))
@@ -49,7 +69,10 @@ class EnumMatchFactory: SyntaxRewriter {
       
       let matchFunc = SyntaxFactory.makeFuncKeyword(leadingTrivia: .spaces(2), trailingTrivia: .spaces(1))
       
-      let commaToken = SyntaxFactory.makeToken(TokenKind.comma, presence: SourcePresence.present, leadingTrivia: .zero, trailingTrivia: .spaces(1))
+      let commaToken = SyntaxFactory.makeToken(TokenKind.comma,
+                                               presence: SourcePresence.present,
+                                               leadingTrivia: .zero,
+                                               trailingTrivia: .spaces(1))
       let colonToken = SyntaxFactory.makeToken(TokenKind.colon, presence: SourcePresence.present)
       
       var funcParams = [FunctionParameterSyntax]()
