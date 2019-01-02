@@ -8,6 +8,7 @@
 import Foundation
 import SwiftSyntax
 
+@available(OSX 10.11, *)
 public final class CommandLineTool {
   private let arguments: [String]
   
@@ -17,16 +18,21 @@ public final class CommandLineTool {
   
   public func run() throws {
     guard arguments.count > 1 else {
-      throw Error.missingRootDirectory
+      throw Error.missingRootDirectoryOrFileName
     }
     // root directory to generate the new file, also searches all swift files starting from here
     let rootDirectoryUrl = URL(fileURLWithPath: arguments[1])
     
-    let contents = try! FileManager.default.contentsOfDirectory(at: rootDirectoryUrl,
-                                                                includingPropertiesForKeys: nil,
-                                                                options: [.skipsHiddenFiles])
-    
-    var swiftFileUrls = contents.recFlatMap(contents)
+    var swiftFileUrls = [URL]()
+    if rootDirectoryUrl.hasDirectoryPath {
+      let contents = try! FileManager.default.contentsOfDirectory(at: rootDirectoryUrl,
+                                                                  includingPropertiesForKeys: nil,
+                                                                  options: [.skipsHiddenFiles])
+      
+      swiftFileUrls = contents.recFlatMap(contents)
+    } else {
+      swiftFileUrls.append(rootDirectoryUrl)
+    }
     
     let factory = EnumMatchFactory()
     swiftFileUrls = factory.setUp(swiftFileUrls)
@@ -42,8 +48,9 @@ public final class CommandLineTool {
   }
 }
 
+@available(OSX 10.11, *)
 public extension CommandLineTool {
   enum Error: Swift.Error {
-    case missingRootDirectory
+    case missingRootDirectoryOrFileName
   }
 }
