@@ -44,8 +44,8 @@ class EnumMatchFactory: SyntaxRewriter {
     return super.visit(node)
   }
   
-  func createEnumMatchFile(_ sourceFileURL: URL) {
-    if enumDatas.count == 0 { return }
+  func createEnumMatchFile(_ sourceFileURL: URL) -> String? {
+    if enumDatas.count == 0 { return nil }
     var decls = [CodeBlockItemSyntax]()
     for enumData in enumDatas.values.sorted(by: { (data1, data2) -> Bool in
       return data1.identifier < data2.identifier
@@ -194,7 +194,10 @@ class EnumMatchFactory: SyntaxRewriter {
     } catch {}
     
     enumDatas.removeAll()
+    let generationHeader = "/* This file was generated from \(sourceFileURL.lastPathComponent) */\n"
     var fileWriter = FileWriter(outputFileURL: genFileURL)
+    generationHeader.write(to: &fileWriter)
     source.write(to: &fileWriter)
+    return genFileURL.lastPathComponent
   }
 }

@@ -36,11 +36,18 @@ public final class CommandLineTool {
     
     let factory = EnumMatchFactory()
     let nonGeneratedFiles = swiftFileUrls.filter { return !$0.lastPathComponent.contains(RemodelConstants.enumMatchFileName) }
-    for (index, swiftFile) in nonGeneratedFiles.enumerated() {
-      print("\(index)/\(nonGeneratedFiles.count) files")
+    var generatedCount = 0
+    for swiftFile in nonGeneratedFiles {
       let sourceFile = try! SyntaxTreeParser.parse(swiftFile)
       let _ = factory.visit(sourceFile)
-      factory.createEnumMatchFile(swiftFile)
+      if let genResult = factory.createEnumMatchFile(swiftFile) {
+        print("\(swiftFile.lastPathComponent) >>> \(genResult)")
+        generatedCount = generatedCount + 1
+      }
+    }
+    print("Generated \(generatedCount)/\(nonGeneratedFiles.count) files")
+    if (generatedCount > 0) {
+      print("Next step: Add generated files to xcodeproj manually")
     }
   }
 }

@@ -25,7 +25,7 @@ final class swift_remodelTests: XCTestCase {
     let fileManager = FileManager.default
     fileManager.changeCurrentDirectoryPath(testFolder.path)
     let newfilePath = URL(fileURLWithPath: testFolder.path).appendingPathComponent("sample.swift")
-    let resultfilePath = URL(fileURLWithPath: testFolder.path).appendingPathComponent(RemodelConstants.enumMatchFileName)
+    let resultfilePath = URL(fileURLWithPath: testFolder.path).appendingPathComponent("sample__\(RemodelConstants.enumMatchFileName)")
     fileManager.createFile(atPath: newfilePath.path, contents: nil, attributes: nil)
     try swift_remodelTests.testText.write(to: newfilePath, atomically: false, encoding: .utf8)
     
@@ -34,7 +34,7 @@ final class swift_remodelTests: XCTestCase {
     try! tool.run()
     
     XCTAssertNotNil(try? testFolder.file(named: "sample.swift"))
-    XCTAssertNotNil(try? testFolder.file(named: RemodelConstants.enumMatchFileName))
+    XCTAssertNotNil(try? testFolder.file(named: "sample__\(RemodelConstants.enumMatchFileName)"))
     
     let sampleText = try String(contentsOf: newfilePath, encoding: .utf8)
     XCTAssertEqual(sampleText, swift_remodelTests.testText)
@@ -89,6 +89,7 @@ final class swift_remodelTests: XCTestCase {
   }
   """
   static let resultText = """
+  /* This file was generated from sample.swift */
   import Foundation
 
   extension SomeClass.SomeStruct.Action {
