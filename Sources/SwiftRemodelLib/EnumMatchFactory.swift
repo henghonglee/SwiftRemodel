@@ -12,14 +12,6 @@ import Foundation
 class EnumMatchFactory: SyntaxRewriter {
   var enumDatas = [String:EnumData]()
   
-  func setUp(_ swiftFileUrls: [URL]) -> [URL] {
-    let enumMatchPaths = swiftFileUrls.filter { return $0.lastPathComponent.contains(RemodelConstants.enumMatchFileName) }
-    for enumMatchPath in enumMatchPaths {
-      try! FileManager.default.removeItem(atPath: enumMatchPath.path)
-    }
-    return swiftFileUrls.filter { return !$0.lastPathComponent.contains(RemodelConstants.enumMatchFileName) }
-  }
-  
   override func visit(_ node: EnumDeclSyntax) -> DeclSyntax {
     var inheritanceQueue = [String]()
     inheritanceQueue.insert(node.identifier.text, at: 0)
@@ -52,7 +44,8 @@ class EnumMatchFactory: SyntaxRewriter {
     return super.visit(node)
   }
   
-  func createEnumMatchFile(_ rootDirectoryUrl: URL) {
+  func createEnumMatchFile(_ sourceFileURL: URL) {
+    if enumDatas.count == 0 { return }
     var decls = [CodeBlockItemSyntax]()
     for enumData in enumDatas.values.sorted(by: { (data1, data2) -> Bool in
       return data1.identifier < data2.identifier
@@ -191,7 +184,17 @@ class EnumMatchFactory: SyntaxRewriter {
       builder.addCodeBlockItem(allExtensions)
       builder.useEOFToken(SyntaxFactory.makeToken(TokenKind.eof, presence: .present))
     }
-    var fileWriter = FileWriter(rootDirectoryUrl: rootDirectoryUrl)
+    
+    let genFileLastPathComponent = sourceFileURL.lastPathComponent.replacingOccurrences(of: ".swift", with: "__\(RemodelConstants.enumMatchFileName)")
+    var genFileURL = sourceFileURL
+    genFileURL.deleteLastPathComponent()
+    genFileURL.appendPathComponent(genFileLastPathComponent)
+    do {
+      try FileManager.default.removeItem(atPath: genFileURL.path)
+    } catch {}
+    
+    enumDatas.removeAll()
+    var fileWriter = FileWriter(outputFileURL: genFileURL)
     source.write(to: &fileWriter)
   }
 }

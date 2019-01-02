@@ -21,11 +21,9 @@ struct RemodelConstants {
 }
 
 struct FileWriter: TextOutputStream {
-  let rootDirectoryUrl: URL
+  let outputFileURL: URL
   mutating func write(_ string: String) {
-    var enumMatchPath = rootDirectoryUrl
-    enumMatchPath.appendPathComponent(RemodelConstants.enumMatchFileName)
-    guard let out = OutputStream(url: enumMatchPath, append: true) else {fatalError()}
+    guard let out = OutputStream(url: outputFileURL, append: true) else {fatalError()}
     out.open()
     out.write(string, maxLength: string.lengthOfBytes(using: .utf8))
     out.close()

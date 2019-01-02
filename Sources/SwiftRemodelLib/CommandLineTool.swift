@@ -35,16 +35,13 @@ public final class CommandLineTool {
     }
     
     let factory = EnumMatchFactory()
-    swiftFileUrls = factory.setUp(swiftFileUrls)
-    
-    for (index, swiftFile) in swiftFileUrls.enumerated() {
-            fflush(__stdoutp)
-      print("\(index)/\(swiftFileUrls.count) files")
-
+    let nonGeneratedFiles = swiftFileUrls.filter { return !$0.lastPathComponent.contains(RemodelConstants.enumMatchFileName) }
+    for (index, swiftFile) in nonGeneratedFiles.enumerated() {
+      print("\(index)/\(nonGeneratedFiles.count) files")
       let sourceFile = try! SyntaxTreeParser.parse(swiftFile)
       let _ = factory.visit(sourceFile)
+      factory.createEnumMatchFile(swiftFile)
     }
-    factory.createEnumMatchFile(rootDirectoryUrl)
   }
 }
 
